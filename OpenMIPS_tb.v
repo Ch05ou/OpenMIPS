@@ -1,8 +1,8 @@
 `timescale 1ns/1ps
 module openmips_min_sopc_tb();
 
-  reg     CLOCK_50;
-  reg     rst;
+  reg     clk;
+  reg     reset;
   
   initial begin
     $fsdbDumpfile("OpenMIPS");
@@ -11,24 +11,24 @@ module openmips_min_sopc_tb();
   end
        
   initial begin
-    CLOCK_50 = 1'b0;
-    forever #10 CLOCK_50 = ~CLOCK_50;
+    clk = 1'b0;
+    forever #10 clk = ~clk;
   end
       
   initial begin
-    rst = 1'b1;
-    #195 rst= 1'b0;
+    reset = 1'b1;
+    #195 reset= 1'b0;
     #1000 $stop;
   end
        
   SOPC openmips_min_sopc0(
-		.clk(CLOCK_50),
-		.reset(rst)	
+		.clk(clk),
+		.reset(reset)	
 	);
 
   reg [22:0]cycle=0;
 
-  always @(posedge CLOCK_50 ) begin
+  always @(posedge clk ) begin
     cycle = cycle+1;
     if(cycle > 50)begin
       $display("--------------------------------Simulation Complete !--------------------------------");
