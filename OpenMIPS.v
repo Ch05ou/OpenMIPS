@@ -56,28 +56,94 @@ module OpenMIPS(
     
     assign rom_addr_out = pc;
     
-    pipe_if_id      u_pipe_if_id       (.clk(clk),.reset(reset),.if_pc(pc),.if_inst(rom_data_in),.id_pc(id_pc),.id_inst(id_inst));
+    pipe_if_id      u_pipe_if_id       (.clk(clk),.reset(reset),
+                                        .if_pc(pc),
+                                        .if_inst(rom_data_in),
+                                        .id_pc(id_pc),
+                                        .id_inst(id_inst)
+                                        );
 
-    ins_decode      u_ins_decode       (.reset(reset),.pc(id_pc),.ins(id_inst),.rf_data1(data1_data),.rf_data2(data2_data),.rd1_en(data1_en),.rd2_en(data2_en),.addr1(data1_addr),
-                                        .addr2(data2_addr),.alu_op(id_alu_op),
-                                        .alu_sel(id_alu_sel),.src_data1(id_data1),.src_data2(id_data2),.wr_addr(id_addr),.wr_en(id_en));
+    ins_decode      u_ins_decode       (.reset(reset),
+                                        .pc(id_pc),                 
+                                        .ins(id_inst),                  // [I] Instruction from Instruction ROM 
+                                        .rf_data1(data1_data),          // [I] Register data from Register file
+                                        .rf_data2(data2_data),          // [I] Register data from Register file
+                                        .rd1_en(data1_en),              // [O] Register file Read enable
+                                        .rd2_en(data2_en),              // [O] Register file Read enable
+                                        .addr1(data1_addr),             // [O] (Read) Register file data Address 
+                                        .addr2(data2_addr),             // [O] (Read) Register file data Address 
+                                        .alu_op(id_alu_op),             // [O] ALU's operator code
+                                        .alu_sel(id_alu_sel),           // [O] ALU function select
+                                        .src_data1(id_data1),           // [O] Output for register data/imm to ex (ALU Module)
+                                        .src_data2(id_data2),           // [O] Output for register data/imm to ex (ALU Module)
+                                        .wr_addr(id_addr),              // [O] Register file Write address
+                                        .wr_en(id_en)                   // [O] Register file Write Enable
+                                        );
 
-    reg_file        u_reg_file         (.clk (clk),.reset(reset),.wr_en(pip_mem_en),.rd1_en(data1_en),.rd2_en(data2_en),.wr_data(pip_mem_data),.wr_addr(pip_mem_addr),
-                                        .addr1(data1_addr),.addr2(data2_addr),.out_data1(data1_data),.out_data2(data2_data));
+    reg_file        u_reg_file         (.clk (clk),.reset(reset),       
+                                        .wr_en(pip_mem_en),             // [I] write enable
+                                        .rd1_en(data1_en),              // [I] read enable
+                                        .rd2_en(data2_en),              // [I] read enable
+                                        .wr_data(pip_mem_data),         // [I] write data
+                                        .wr_addr(pip_mem_addr),         // [I] write address
+                                        .addr1(data1_addr),             // [I] read address
+                                        .addr2(data2_addr),             // [I] read address
+                                        .out_data1(data1_data),         // [O] read data
+                                        .out_data2(data2_data)          // [O] read data
+                                        );
 
-    pipe_ins_decode u_pipe_ins_decode  (.clk(clk),.reset(reset),.alu_sel(id_alu_sel),.alu_op(id_alu_op),.src_data1(id_data1),.src_data2(id_data2),.wr_addr(id_addr),.wr_en(id_en),
-                                        .pipe_alu_sel(ex_alu_sel),.pipe_alu_op(ex_alu_op),.pipe_src_data1(ex_data1),.pipe_src_data2(ex_data2),.pipe_wr_addr(ex_addr),
-                                        .pipe_wr_en(ex_en));
+    pipe_ins_decode u_pipe_ins_decode  (.clk(clk),.reset(reset),        
+                                        .alu_sel(id_alu_sel),           
+                                        .alu_op(id_alu_op),             
+                                        .src_data1(id_data1),           
+                                        .src_data2(id_data2),           
+                                        .wr_addr(id_addr),              
+                                        .wr_en(id_en),                  
+                                        .pipe_alu_sel(ex_alu_sel),      
+                                        .pipe_alu_op(ex_alu_op),        
+                                        .pipe_src_data1(ex_data1),      
+                                        .pipe_src_data2(ex_data2),      
+                                        .pipe_wr_addr(ex_addr),         
+                                        .pipe_wr_en(ex_en)              
+                                        );
 
-    ex              u_ex               (.reset(reset),.alu_sel(ex_alu_sel),.alu_op(ex_alu_op),.src_data1(ex_data1),.src_data2(ex_data2),.wr_addr(ex_addr),.wr_en(ex_en),
-                                        .out_addr(ex_out_addr),.out_data(ex_out_data),.out_en(ex_out_en));
+    ex              u_ex               (.reset(reset),                  
+                                        .alu_sel(ex_alu_sel),           // []
+                                        .alu_op(ex_alu_op),             // []
+                                        .src_data1(ex_data1),           // []
+                                        .src_data2(ex_data2),           // []
+                                        .wr_addr(ex_addr),              // []
+                                        .wr_en(ex_en),                  // []
+                                        .out_addr(ex_out_addr),         // []
+                                        .out_data(ex_out_data),         // []
+                                        .out_en(ex_out_en)              // []
+                                        );
 
-    pipe_ex         u_pipe_ex          (.clk(clk),.reset(reset),.out_addr(ex_out_addr),.out_en(ex_out_en),.out_data(ex_out_data),
-                                        .pipe_out_addr(mem_addr),.pipe_out_en(mem_en),.pipe_out_data(mem_data));
+    pipe_ex         u_pipe_ex          (.clk(clk),.reset(reset),
+                                        .out_addr(ex_out_addr),
+                                        .out_en(ex_out_en),
+                                        .out_data(ex_out_data),
+                                        .pipe_out_addr(mem_addr),
+                                        .pipe_out_en(mem_en),
+                                        .pipe_out_data(mem_data))
+                                        ;
 
-    mem             u_mem              (.reset(reset),.addr(mem_addr),.wr_en(mem_en),.data(mem_data),.out_addr(out_mem_addr),.out_en(out_mem_en),.out_data(out_mem_data));
+    mem             u_mem              (.reset(reset),      
+                                        .addr(mem_addr),                // []
+                                        .wr_en(mem_en),                 // []
+                                        .data(mem_data),                // []
+                                        .out_addr(out_mem_addr),        // []
+                                        .out_en(out_mem_en),            // []
+                                        .out_data(out_mem_data)         // []
+                                        );
 
-    pipe_mem        u_pipe_mem         (.clk(clk),.reset(reset),.mem_addr(out_mem_addr),.mem_en(out_mem_en),.mem_data(out_mem_data),
-                                        .pipe_mem_addr(pip_mem_addr),.pipe_mem_en(pip_mem_en),.pipe_mem_data(pip_mem_data));
+    pipe_mem        u_pipe_mem         (.clk(clk),.reset(reset),
+                                        .mem_addr(out_mem_addr),
+                                        .mem_en(out_mem_en),
+                                        .mem_data(out_mem_data),
+                                        .pipe_mem_addr(pip_mem_addr),
+                                        .pipe_mem_en(pip_mem_en),
+                                        .pipe_mem_data(pip_mem_data)
+                                        );
 
 endmodule
