@@ -6,3 +6,4 @@ INCA_libs/
 nWaveLog/
 *.log
 *.history
+*.fsdb
