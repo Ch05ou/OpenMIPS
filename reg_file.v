@@ -28,7 +28,7 @@ module reg_file(
             out_data1 <= 32'd0;
         end
         else begin
-            if(addr1 == wr_addr && wr_en)begin
+            if(addr1 == wr_addr && wr_en && rd1_en)begin        // when last result need to using immediatly out_data = wiriting data
                 out_data1 <= wr_data;
             end
             else if(addr1 == 32'd0)begin
@@ -45,7 +45,7 @@ module reg_file(
             out_data2 <= 32'd0;
         end
         else begin
-            if(addr2 == wr_addr && wr_en)begin
+            if(addr2 == wr_addr && wr_en && rd2_en)begin        // when last result need to using immediatly out_data = wiriting data
                 out_data2 <= wr_data;
             end
             else if(addr2 == 32'd0)begin

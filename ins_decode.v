@@ -1,6 +1,16 @@
 module ins_decode(
     input reset,
     input [31:0]pc,ins,rf_data1,rf_data2,
+
+    // Data rewrite avoid pipeline conflict for ex
+    input ex_rewrite_en,
+    input [4:0]ex_rewrite_addr,
+    input [31:0]ex_rewrite_data,
+    input mem_rewrite_en,
+    input [4:0]mem_rewrite_addr,
+    input [31:0]mem_rewrite_data,
+
+    // Data rewrite avoid pipeline conflict for memory
     output reg rd1_en,rd2_en,
     output reg[4:0]addr1,addr2,
     output reg[7:0]alu_op,
@@ -64,8 +74,20 @@ module ins_decode(
         if(reset)begin
             src_data1 <= 32'd0;
         end
+        else if(rd1_en && ex_rewrite_en && (ex_rewrite_addr == addr1))begin
+            src_data1 <= ex_rewrite_data;
+        end
+        else if(rd1_en && mem_rewrite_en && (mem_rewrite_addr == addr1))begin
+            src_data1 <= mem_rewrite_data;
+        end
+        else if(rd1_en == 1'b1)begin
+            src_data1 <= rf_data1;
+        end
+        else if(rd1_en == 1'b0)begin
+            src_data1 <= imme;
+        end
         else begin
-            src_data1 <= (rd1_en)? rf_data1:imme;
+            src_data1 <= 32'd0;
         end
     end
 
@@ -73,8 +95,20 @@ module ins_decode(
         if(reset)begin
             src_data2 <= 32'd0;
         end
+        else if(rd2_en && ex_rewrite_en && (ex_rewrite_addr == addr2))begin
+            src_data2 <= ex_rewrite_data;
+        end
+        else if(rd2_en && mem_rewrite_en && (mem_rewrite_addr == addr2))begin
+            src_data2 <= mem_rewrite_data;
+        end
+        else if(rd2_en == 1'b1)begin
+            src_data2 <= rf_data2;
+        end
+        else if(rd2_en == 1'b0)begin
+            src_data2 <= imme;
+        end
         else begin
-            src_data2 <= (rd2_en)? rf_data2:imme;
+            src_data2 <= 32'd0;
         end
     end
 

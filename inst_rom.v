@@ -1,3 +1,6 @@
+`define ORI_test "inst_rom_ori.data"
+`define Hazard_test "inst_rom_hazard.data"
+
 module inst_rom(
     input chip_en,
     input [31:0]isnt_addr,
@@ -6,7 +9,7 @@ module inst_rom(
     reg [31:0]inst_mem[0:131070];
 
     initial begin
-        $readmemh("inst_rom.data",inst_mem);
+        $readmemh("inst_rom_hazard.data",inst_mem);
     end
 
     always @(*) begin

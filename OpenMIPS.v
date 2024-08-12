@@ -68,6 +68,12 @@ module OpenMIPS(
                                         .ins(id_inst),                  // [I] Instruction from Instruction ROM 
                                         .rf_data1(data1_data),          // [I] Register data from Register file
                                         .rf_data2(data2_data),          // [I] Register data from Register file
+                                        .ex_rewrite_en(ex_out_en),
+                                        .ex_rewrite_addr(ex_out_addr),
+                                        .ex_rewrite_data(ex_out_data),
+                                        .mem_rewrite_en(out_mem_en),
+                                        .mem_rewrite_addr(out_mem_addr),
+                                        .mem_rewrite_data(out_mem_data),
                                         .rd1_en(data1_en),              // [O] Register file Read enable
                                         .rd2_en(data2_en),              // [O] Register file Read enable
                                         .addr1(data1_addr),             // [O] (Read) Register file data Address 
