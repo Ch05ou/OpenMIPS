@@ -1,0 +1,8 @@
+*.rc
+*.key
+*.conf
+BSSLib.lib++/
+INCA_libs/
+nWaveLog/
+*.log
+*.history
