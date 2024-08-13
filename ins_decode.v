@@ -148,7 +148,7 @@ module ins_decode(
                                 end
                                 6'b010001:begin         // MTHI
                                     wr_en <= 1'b0;
-                                    alu_op <= 00010001;
+                                    alu_op <= 8'b00010001;
                                     alu_sel <= 3'b011;
                                     rd1_en <= 1'b1;
                                     rd2_en <= 1'b0;
@@ -156,17 +156,17 @@ module ins_decode(
                                 end
                                 6'b010010:begin         // MFLO
                                     wr_en <= 1'b1;
-                                    alu_op <= 00010010;
+                                    alu_op <= 8'b00010010;
                                     alu_sel <= 3'b011;
                                     rd1_en <= 1'b0;
                                     rd2_en <= 1'b0;
                                     ins_check <= 1'b1;
                                 end
                                 6'b010011:begin         // MTLO
-                                    wr_en <= 1'b1;
-                                    alu_op <= 00010011;
+                                    wr_en <= 1'b0;
+                                    alu_op <= 8'b00010011;
                                     alu_sel <= 3'b011;
-                                    rd1_en <= 1'b0;
+                                    rd1_en <= 1'b1;
                                     rd2_en <= 1'b0;
                                     ins_check <= 1'b1;
                                 end

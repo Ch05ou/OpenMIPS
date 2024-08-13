@@ -9,7 +9,7 @@ module ex(
     input mem_hilo_wr_en,mem_pip_en,
     output reg[4:0]out_addr,
     output reg[31:0]out_data,
-    output reg out_en
+    output reg out_en,
     output reg hilo_wr_en,
     output reg[31:0]hi_data,lo_data
 );
@@ -118,14 +118,14 @@ module ex(
             {hi,lo} <= {mem_hi_data,mem_lo_data};
         end
         else if(mem_pip_en)begin
-            {hi,lo} <= {mem_pip_hi,mmem_pip_lo};
+            {hi,lo} <= {mem_pip_hi,mem_pip_lo};
         end
         else begin
             {hi,lo} <= {HI,LO};
         end
     end
 
-    always @(*) begin                                           // MTHI、MTLO
+    always @(*) begin                                           // MTHI and MTLO
         if(reset)begin
             hilo_wr_en <= 1'b0;
             hi_data <= 32'd0;

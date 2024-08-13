@@ -60,7 +60,7 @@ module OpenMIPS(
     wire [4:0]data1_addr,data2_addr;
     wire [31:0]data1_data,data2_data;
 
-    wire [31:0]HI,Lo;
+    wire [31:0]HI,LO;
 
     program_counter u_program_counter  (.clk(clk),.reset(reset),.chip_en(rom_en),.pc(pc));
     
@@ -167,7 +167,7 @@ module OpenMIPS(
                                         .data(mem_data),                // []
                                         .out_addr(out_mem_addr),        // []
                                         .out_en(out_mem_en),            // []
-                                        .out_data(out_mem_data)         // []
+                                        .out_data(out_mem_data),         // []
                                         .hilo_wr_en(ex_pipe_hilo_en),
                                         .hilo_wr_hi(ex_pipe_hi),
                                         .hilo_wr_lo(ex_pipe_lo),

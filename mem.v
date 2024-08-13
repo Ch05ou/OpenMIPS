@@ -4,7 +4,7 @@ module mem(
     input wr_en,hilo_wr_en,
     input [31:0]data,hilo_wr_hi,hilo_wr_lo,
     output reg[4:0]out_addr,
-    output reg out_en,hilo_out_en
+    output reg out_en,hilo_out_en,
     output reg[31:0]out_data,hilo_out_hi,hilo_out_lo
 );
     always @(*) begin

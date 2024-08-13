@@ -13,8 +13,8 @@ module pipe_mem(
             pipe_mem_addr <= 5'd0;
             pipe_mem_data <= 32'd0;
             pipe_hilo_en <= 1'b0;
-            pipe_hilo_hi <= 32'd0;
-            pipe_hilo_lo <= 32'd0;
+            pipe_hi <= 32'd0;
+            pipe_lo <= 32'd0;
         end
         else begin
             pipe_mem_en <= mem_en;
