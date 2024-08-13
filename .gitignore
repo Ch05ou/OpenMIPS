@@ -6,4 +6,4 @@ INCA_libs/
 nWaveLog/
 *.log
 *.history
-OpenMIPS.fsdb
+*.fsdb

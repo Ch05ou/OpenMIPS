@@ -164,7 +164,7 @@ module ins_decode(
                     alu_sel <= 3'b001;
                     rd1_en <= 1'b1;
                     rd2_en <= 1'b0;
-                    imme <= {16'd0,ins[15:0]};
+                    imme <= {ins[15:0],16'd0};
                     wr_addr <= ins[20:16];
                     ins_check <= 1'b1;
                 end
@@ -180,7 +180,7 @@ module ins_decode(
                 end
             endcase
 
-            if(insruction[31:21] == 11'd0)begin
+            if(ins[31:21] == 11'd0)begin
                 if(funct == 6'b000000)begin         // SLL
                     wr_en <= 1'd1;
                     alu_op <= 8'b01111100;
