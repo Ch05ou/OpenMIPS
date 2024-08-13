@@ -122,6 +122,54 @@ module ins_decode(
                                     rd2_en <= 1'b1;
                                     ins_check <= 1'b1;
                                 end
+                                6'b001010:begin         // MOVZ
+                                    alu_op <= 8'b00001010;
+                                    alu_sel <= 3'b011;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                    wr_en <= (src_data2 == 32'd0)? 1'b1:1'b0;
+                                end
+                                6'b001011:begin         // MOVN
+                                    alu_op <= 8'b00001011;
+                                    alu_sel <= 3'b011;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                    wr_en <= (src_data2 == 32'd0)? 1'b0:1'b1;
+                                end
+                                6'b010000:begin         // MFHI
+                                    wr_en <= 1'b1;
+                                    alu_op <= 00010000;
+                                    alu_sel <= 3'b011;
+                                    rd1_en <= 1'b0;
+                                    rd2_en <= 1'b0;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b010001:begin         // MTHI
+                                    wr_en <= 1'b0;
+                                    alu_op <= 00010001;
+                                    alu_sel <= 3'b011;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b0;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b010010:begin         // MFLO
+                                    wr_en <= 1'b1;
+                                    alu_op <= 00010010;
+                                    alu_sel <= 3'b011;
+                                    rd1_en <= 1'b0;
+                                    rd2_en <= 1'b0;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b010011:begin         // MTLO
+                                    wr_en <= 1'b1;
+                                    alu_op <= 00010011;
+                                    alu_sel <= 3'b011;
+                                    rd1_en <= 1'b0;
+                                    rd2_en <= 1'b0;
+                                    ins_check <= 1'b1;
+                                end
                                 default:begin
                                 end
                             endcase
