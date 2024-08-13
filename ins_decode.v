@@ -6,11 +6,11 @@ module ins_decode(
     input ex_rewrite_en,
     input [4:0]ex_rewrite_addr,
     input [31:0]ex_rewrite_data,
+    // Data rewrite avoid pipeline conflict for memory
     input mem_rewrite_en,
     input [4:0]mem_rewrite_addr,
     input [31:0]mem_rewrite_data,
 
-    // Data rewrite avoid pipeline conflict for memory
     output reg rd1_en,rd2_en,
     output reg[4:0]addr1,addr2,
     output reg[7:0]alu_op,
@@ -54,7 +54,91 @@ module ins_decode(
             addr2 <= ins[20:16];
             imme <= 32'd0;
             case(opcode)
-                6'b001101:begin
+                6'b000000:begin                     // R-Type insruction
+                    case(shamt)
+                        5'b00000:begin
+                            case(funct)
+                                6'b100100:begin         // AND
+                                    wr_en <= 1'd1;
+                                    alu_op <= 8'b00100100;
+                                    alu_sel <= 3'b001;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b100101:begin         // OR
+                                    wr_en <= 1'd1;
+                                    alu_op <= 8'b00100101;
+                                    alu_sel <= 3'b001;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b100110:begin         // XOR
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00100110;
+                                    alu_sel <= 3'b001;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b100111:begin         // NOR
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00100111;
+                                    alu_sel <= 3'b001;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b000100:begin         // SLLV
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b01111100;
+                                    alu_sel <= 3'b010;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b000110:begin         // SRLV
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00000010;
+                                    alu_sel <= 3'b010;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b000111:begin         // SRAV
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00000011;
+                                    alu_sel <= 3'b010;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end               
+                                6'b001111:begin         // SYNC
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00000000;
+                                    alu_sel <= 3'b000;
+                                    rd1_en <= 1'b0;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                default:begin
+                                end
+                            endcase
+                        end
+                    endcase
+                end
+                6'b001100:begin                     // ANDI
+                    wr_en <= 1'd1;
+                    alu_op <= 8'b00100100;
+                    alu_sel <= 3'b001;
+                    rd1_en <= 1'b1;
+                    rd2_en <= 1'b0;
+                    imme <= {16'd0,ins[15:0]};
+                    wr_addr <= ins[20:16];
+                    ins_check <= 1'b1;
+                end
+                6'b001101:begin                     // ORI
                     wr_en <= 1'd1;
                     alu_op <= 8'b00100101;
                     alu_sel <= 3'b001;
@@ -64,9 +148,74 @@ module ins_decode(
                     wr_addr <= ins[20:16];
                     ins_check <= 1'b1;
                 end
+                6'b001110:begin                     // XORI
+                    wr_en <= 1'd1;
+                    alu_op <= 8'b00100110;
+                    alu_sel <= 3'b001;
+                    rd1_en <= 1'b1;
+                    rd2_en <= 1'b0;
+                    imme <= {16'd0,ins[15:0]};
+                    wr_addr <= ins[20:16];
+                    ins_check <= 1'b1;
+                end
+                6'b001111:begin                     // LUI
+                    wr_en <= 1'd1;
+                    alu_op <= 8'b00100101;
+                    alu_sel <= 3'b001;
+                    rd1_en <= 1'b1;
+                    rd2_en <= 1'b0;
+                    imme <= {16'd0,ins[15:0]};
+                    wr_addr <= ins[20:16];
+                    ins_check <= 1'b1;
+                end
+                6'b110011:begin                     // PREF
+                    wr_en <= 1'd1;
+                    alu_op <= 8'b00000000;
+                    alu_sel <= 3'b000;
+                    rd1_en <= 1'b0;
+                    rd2_en <= 1'b0;
+                    ins_check <= 1'b1;
+                end
                 default:begin
                 end
             endcase
+
+            if(insruction[31:21] == 11'd0)begin
+                if(funct == 6'b000000)begin         // SLL
+                    wr_en <= 1'd1;
+                    alu_op <= 8'b01111100;
+                    alu_sel <= 3'b010;
+                    rd1_en <= 1'b0;
+                    rd2_en <= 1'b1;
+                    imme[4:0] <= ins[10:6];
+                    wr_addr <= ins[15:11];
+                    ins_check <= 1'b1;
+                end
+                else if(funct == 6'b000010)begin    // SRL
+                    wr_en <= 1'd1;
+                    alu_op <= 8'b00000010;
+                    alu_sel <= 3'b010;
+                    rd1_en <= 1'b0;
+                    rd2_en <= 1'b1;
+                    imme[4:0] <= ins[10:6];
+                    wr_addr <= ins[15:11];
+                    ins_check <= 1'b1;
+                end
+                else if(funct == 6'b000011)begin    // SRA
+                    wr_en <= 1'd1;
+                    alu_op <= 8'b00000011;
+                    alu_sel <= 3'b010;
+                    rd1_en <= 1'b0;
+                    rd2_en <= 1'b1;
+                    imme[4:0] <= ins[10:6];
+                    wr_addr <= ins[15:11];
+                    ins_check <= 1'b1;
+                end
+                else begin
+                end
+            end
+            else begin
+            end
         end
     end
 

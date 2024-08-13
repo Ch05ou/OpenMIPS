@@ -9,19 +9,51 @@ module ex(
     output reg[31:0]out_data,
     output reg out_en
 );
-    reg [31:0] result;
+    reg [31:0] logic_result;                                     // Logic Result
+    reg [31:0] shift_result;                                     // Shift Result
 
     always @(*) begin
         if(reset)begin
-            result <= 32'd0;
+            logic_result <= 32'd0;
         end
         else begin
             case(alu_op)
-                8'b00100101:begin
-                    result <= src_data1 | src_data2;
+                8'b00100101:begin                                // OR
+                    logic_result <= src_data1 | src_data2;
+                end
+                8'b00100100:begin                                // AND
+                    logic_result <= src_data1 & src_data2;
+                end
+                8'b00100110:begin                               // XOR
+                    logic_result <= src_data1 ^ src_data2;
+                end
+                8'b00100111:begin                               // NOR
+                    logic_result <= ~(src_data1 | src_data2);
                 end
                 default:begin
-                    result <= 32'd0;
+                    logic_result <= 32'd0;
+                end
+            endcase
+        end
+    end
+
+    always @(*) begin
+        if(reset)begin
+            shift_result <= 32'd0;
+        end
+        else begin
+            case(alu_op)
+                8'b00000010:begin                               // SRL
+                    shift_result <= src_data2 >> src_data1[4:0];
+                end
+                8'b00000011:begin                               // SRA
+                    shift_result <= ({32{src_data2[31]}} << (6'd32 - {1'b0,src_data1[4:0]}))    
+                    |src_data2 >> src_data1[4:0];           
+                end
+                8'b01111100:begin                               //SLL
+                    shift_result <= src_data2 << src_data1[4:0];
+                end
+                default:begin
                 end
             endcase
         end
@@ -32,7 +64,10 @@ module ex(
         out_en <= wr_en;
         case(alu_sel)
             3'b001:begin
-                out_data <= result;
+                out_data <= logic_result;
+            end
+            3'b010:begin
+                out_data <= shift_result;
             end
             default:begin
                 out_data <= 32'd0;
