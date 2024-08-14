@@ -170,9 +170,99 @@ module ins_decode(
                                     rd2_en <= 1'b0;
                                     ins_check <= 1'b1;
                                 end
+                                6'b101010:begin         // SLT
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00101010;
+                                    alu_sel <= 3'b100;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b101011:begin         // SLTU
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00101011;
+                                    alu_sel <= 3'b100;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b100000:begin         // ADD
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00100000;
+                                    alu_sel <= 3'b100;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b100001:begin         // ADDU
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00100001;
+                                    alu_sel <= 3'b100;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b100010:begin         // SUB
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00100010;
+                                    alu_sel <= 3'b100;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b100011:begin         // SUBU
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00100011;
+                                    alu_sel <= 3'b100;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b011000:begin         // MULT
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00011000;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b011001:begin         // MULTU
+                                    wr_en <= 1'b1;
+                                    alu_op <= 8'b00011001;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
                                 default:begin
                                 end
                             endcase
+                        end
+                    endcase
+                end
+                6'b011100:begin                     // Special Type
+                    case(funct)
+                        6'b100000:begin             // CLZ
+                            wr_en <= 1'b1;
+                            alu_op <= 8'b10110000;
+                            alu_sel <= 3'b100;
+                            rd1_en <= 1'b1;
+                            rd2_en <= 1'b0;
+                            ins_check <= 1'b1;
+                        end
+                        6'b100001:begin             // CLO
+                            wr_en <= 1'b1;
+                            alu_op <= 8'b10110001;
+                            alu_sel <= 3'b100;
+                            rd1_en <= 1'b1;
+                            rd2_en <= 1'b0;
+                            ins_check <= 1'b1;
+                        end
+                        6'b000010:begin             // MUL
+                            wr_en <= 1'b1;
+                            alu_op <= 8'b10101001;
+                            alu_sel <= 3'b101;
+                            rd1_en <= 1'b1;
+                            rd2_en <= 1'b1;
+                            ins_check <= 1'b1;
                         end
                     endcase
                 end
@@ -222,6 +312,46 @@ module ins_decode(
                     alu_sel <= 3'b000;
                     rd1_en <= 1'b0;
                     rd2_en <= 1'b0;
+                    ins_check <= 1'b1;
+                end
+                6'b001010:begin                     // SLTI
+                    wr_en <= 1'b1;
+                    alu_op <= 8'b00101010;
+                    alu_sel <= 3'b100;
+                    rd1_en <= 1'b1;
+                    rd2_en <= 1'b0;
+                    imme <= {{16{ins[15]}},ins[15:0]};
+                    wr_addr <= ins[20:16];
+                    ins_check <= 1'b1;
+                end
+                6'b001011:begin                     // SLTIU
+                    wr_en <= 1'b1;
+                    alu_op <= 8'b00101011;
+                    alu_sel <= 3'b100;
+                    rd1_en <= 1'b1;
+                    rd2_en <= 1'b0;
+                    imme <= {{16{ins[15]}},ins[15:0]};
+                    wr_addr <= ins[20:16];
+                    ins_check <= 1'b1;
+                end
+                6'b001000:begin                     // ADDI
+                    wr_en <= 1'b1;
+                    alu_op <= 8'b01010101;
+                    alu_sel <= 3'b100;
+                    rd1_en <= 1'b1;
+                    rd2_en <= 1'b0;
+                    imme <= {{16{ins[15]}},ins[15:0]};
+                    wr_addr <= ins[20:16];
+                    ins_check <= 1'b1;
+                end
+                6'b001001:begin                     // ADDIU
+                    wr_en <= 1'b1;
+                    alu_op <= 8'b01010110;
+                    alu_sel <= 3'b100;
+                    rd1_en <= 1'b1;
+                    rd2_en <= 1'b0;
+                    imme <= {{16{ins[15]}},ins[15:0]};
+                    wr_addr <= ins[20:16];
                     ins_check <= 1'b1;
                 end
                 default:begin

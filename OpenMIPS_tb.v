@@ -18,7 +18,6 @@ module openmips_min_sopc_tb();
   initial begin
     reset = 1'b1;
     #195 reset= 1'b0;
-    #1000 $stop;
   end
        
   SOPC openmips_min_sopc0(
@@ -30,7 +29,7 @@ module openmips_min_sopc_tb();
 
   always @(posedge clk ) begin
     cycle = cycle+1;
-    if(cycle > 50)begin
+    if(cycle > 80)begin
       $display("--------------------------------Simulation Complete !--------------------------------");
       $finish;
     end  
