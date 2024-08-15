@@ -17,7 +17,8 @@ module ins_decode(
     output reg[2:0]alu_sel,
     output reg[31:0]src_data1,src_data2,
     output reg[4:0]wr_addr,
-    output reg wr_en
+    output reg wr_en,
+    output stall_req
 );
     wire [5:0]opcode = ins[31:26];
     wire [4:0]rs = ins[25:21];
@@ -28,6 +29,8 @@ module ins_decode(
 
     reg [31:0]imme;
     reg ins_check;
+
+    assign stall_req = 1'b0;
 
     always @(*) begin
         if(reset)begin

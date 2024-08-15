@@ -12,6 +12,7 @@ module ex(
     output reg out_en,
     output reg hilo_wr_en,
     output reg[31:0]hi_data,lo_data
+    output stall_req
 );
     reg [31:0] logic_result;                                    // Logic Result
     reg [31:0] shift_result;                                    // Shift Result
@@ -32,7 +33,7 @@ module ex(
 
     assign cal_data2 = ((alu_op == 8'b00100010) ||
                         (alu_op == 8'b00100011) ||
-                        (alu_op == 8'b00101010))? ~(src_data2)+1'b1 : src_data2;
+                        (alu_op == 8'b00101010))? ~(src_data2)+1'b1 : src_data2;        // If do signed airthmetic get complement
     
     assign sum_result = src_data1 + cal_data2;
 
@@ -44,8 +45,8 @@ module ex(
 
     assign overflow = ((!src_data1[31] && !cal_data2[31]) && sum_result[31]) || ((src_data1[31] && cal_data2[31]) && (!sum_result[31]));
     
-    assign mul_data1 = (((alu_op == 8'b10101001)||(alu_op == 8'b00011000)) && (src_data1[31] == 1'b1))? (~src_data1+1):src_data1;
-    assign mul_data2 = (((alu_op == 8'b10101001)||(alu_op == 8'b00011000)) && (src_data2[31] == 1'b1))? (~src_data2+1):src_data2;
+    assign mul_data1 = (((alu_op == 8'b10101001)||(alu_op == 8'b00011000)) && (src_data1[31] == 1'b1))? (~src_data1+1):src_data1;           // get Complement
+    assign mul_data2 = (((alu_op == 8'b10101001)||(alu_op == 8'b00011000)) && (src_data2[31] == 1'b1))? (~src_data2+1):src_data2;           // get Complement
     assign hilo_tmp = mul_data1 * mul_data2;
 
     always @(*) begin                                           // Logic Calculate
@@ -119,6 +120,7 @@ module ex(
             endcase
         end
     end
+    
     always @(*) begin                                           // ADD/SUB/Compare Calculate
         if(reset)begin
             calculate_result <= 32'd0;
@@ -128,29 +130,10 @@ module ex(
                 8'b00101010,8'b00101011:begin                           // SLT , SLTU
                     calculate_result <= data1_less_data2;
                 end
-                8'b00100000,8'b00100001,8'b01010101,8'b01010110:begin   // ADD , ADDI , ADDU , ADDIU 
-                    calculate_result <= sum_result;
-                end
-                8'b00100010,8'b00100011:begin                           // SUB , SUBU
+                8'b00100000,8'b00100001,8'b01010101,8'b01010110,'b00100010,8'b00100011:begin   // ADD , ADDI , ADDU , ADDIU , SUB , SUBU
                     calculate_result <= sum_result;
                 end
                 8'b10110000:begin                                       // CLZ
-                    /*calculate_result <= (src_data1[31])? 32'd0 : (src_data1[30])? :32'd1 :
-                                        (src_data1[29])? 32'd2 : (src_data1[28])? : 32'd3 :
-                                        (src_data1[27])? 32'd4 : (src_data1[26])? : 32'd5 :
-                                        (src_data1[25])? 32'd6 : (src_data1[24])? : 32'd7 :
-                                        (src_data1[23])? 32'd8 : (src_data1[22])? : 32'd9 :
-                                        (src_data1[21])? 32'd10 : (src_data1[20])? : 32'd11 :
-                                        (src_data1[19])? 32'd12 : (src_data1[18])? : 32'd13 :
-                                        (src_data1[17])? 32'd14 : (src_data1[16])? : 32'd15 :
-                                        (src_data1[15])? 32'd16 : (src_data1[14])? : 32'd17 :
-                                        (src_data1[13])? 32'd18 : (src_data1[12])? : 32'd19 :
-                                        (src_data1[11])? 32'd20 : (src_data1[10])? : 32'd21 :
-                                        (src_data1[9])? 32'd22 : (src_data1[8])? : 32'd23 :
-                                        (src_data1[7])? 32'd24 : (src_data1[6])? : 32'd25 :
-                                        (src_data1[5])? 32'd26 : (src_data1[4])? : 32'd27 :
-                                        (src_data1[3])? 32'd28 : (src_data1[2])? : 32'd29 :
-                                        (src_data1[1])? 32'd30 : (src_data1[0])? : 32'd31 : 32'd32;*/   
                     casez(src_data1)
                         32'b1???????????????????????????????: calculate_result <= 32'd0;
                         32'b01??????????????????????????????: calculate_result <= 32'd1;
@@ -231,11 +214,11 @@ module ex(
         end    
     end
 
-    always @(*) begin
+    always @(*) begin                                                   // Multiplication Airthmetic
         if(reset)begin
             mul_result <= 64'd0;
         end
-        else if((alu_op == 8'b10101001)||(alu_op == 8'b00011000))begin
+        else if((alu_op == 8'b10101001)||(alu_op == 8'b00011000))begin      
             if(src_data1[31] ^ src_data2[31])begin
                 mul_result <= ~hilo_tmp+1;
             end
@@ -273,7 +256,7 @@ module ex(
         endcase
     end
 
-    always @(*) begin                                           // Access HI and LO
+    always @(*) begin                                           // Access HI and LO avoid data hazard
         if(reset)begin
            {hi,lo} <= 64'd0; 
         end

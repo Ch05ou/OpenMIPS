@@ -1,5 +1,6 @@
 module program_counter(
     input clk,reset,
+    input [5:0]stall_en,
     output reg chip_en,
     output reg [31:0]pc
 );
@@ -20,7 +21,7 @@ module program_counter(
             pc <= 32'd0;
         end
         else begin
-            pc <= pc + 4;
+            pc <= (stall_en[0])? pc:pc + 4;
         end
     end
 endmodule
