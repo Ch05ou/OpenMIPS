@@ -23,7 +23,7 @@ module pipe_ex(
             pipe_hilo_out <= {32'd0,32'd0};
             pipe_counter_out <= 2'b00;
         end
-        else if(stall_en[3] && !stall_en[4])begin
+        else if(stall_en[3] && stall_en[4] == 1'b0)begin
             pipe_out_data <= 32'd0;
             pipe_out_en <= 1'd0;
             pipe_out_addr <= 5'd0;

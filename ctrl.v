@@ -13,10 +13,10 @@ module ctrl(
         if(reset)begin
             stall_en <= 6'b000000;
         end
-        else if(id_stall)begin
+        else if(ex_stall)begin
             stall_en <= 6'b001111;
         end
-        else if(ex_stall)begin
+        else if(id_stall)begin
             stall_en <= 6'b000111;
         end
         else begin

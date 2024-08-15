@@ -66,6 +66,9 @@ module OpenMIPS(
     wire id_stall_en,ex_stall_en;
     wire [5:0]stall_en;
 
+    wire [63:0]ex_hilo,pipe_ex_hilo;
+    wire [1:0]ex_counter,pipe_ex_counter;
+
     program_counter u_program_counter  (.clk(clk),.reset(reset),.chip_en(rom_en),.pc(pc),.stall_en(stall_en));
     
     assign rom_addr_out = pc;
@@ -151,7 +154,11 @@ module OpenMIPS(
                                         .hilo_wr_en(ex_hilo_en),
                                         .hi_data(ex_hi),
                                         .lo_data(ex_lo),
-                                        .stall_req(ex_stall_en)
+                                        .stall_req(ex_stall_en),
+                                        .counter_in(pipe_ex_counter),
+                                        .hilo_tmp_in(pipe_ex_hilo),
+                                        .counter_out(ex_counter),
+                                        .hilo_tmp_out(ex_hilo)
                                         );
 
     pipe_ex         u_pipe_ex          (.clk(clk),.reset(reset),
@@ -167,7 +174,11 @@ module OpenMIPS(
                                         .pipe_hilo_en(ex_pipe_hilo_en),
                                         .pipe_hilo_hi(ex_pipe_hi),
                                         .pipe_hilo_lo(ex_pipe_lo),
-                                        .stall_en(stall_en)
+                                        .stall_en(stall_en),
+                                        .hilo_in(ex_hilo),
+                                        .counter_in(ex_counter),
+                                        .pipe_hilo_out(pipe_ex_hilo),
+                                        .pipe_counter_out(pipe_ex_counter)
                                         );
 
     mem             u_mem              (.reset(reset),      

@@ -17,7 +17,7 @@ module pipe_ins_decode(
     //---------------------------------------------------------------//
     
     always @(posedge clk) begin
-        if(reset || (stall_en[2] && !stall_en[3]))begin
+        if(reset || (stall_en[2] && stall_en[3]==1'b0))begin
             pipe_alu_sel <= 3'd0;
             pipe_alu_op <= 8'd0;
             pipe_src_data1 <= 32'd0;
