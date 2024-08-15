@@ -4,6 +4,7 @@
 `define Shift_test "inst_rom_shift.data"
 `define Move_test "inst_rom_move.data"
 `define SA_test "inst_rom_sa.data"
+`define MULAS_test "inst_rom_mulas.data"
 
 module inst_rom(
     input chip_en,
@@ -13,7 +14,7 @@ module inst_rom(
     reg [31:0]inst_mem[0:131070];
 
     initial begin
-        $readmemh("inst_rom_sa.data",inst_mem);
+        $readmemh("inst_rom_mulas.data",inst_mem);
     end
 
     always @(*) begin

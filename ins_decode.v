@@ -243,6 +243,38 @@ module ins_decode(
                 end
                 6'b011100:begin                     // Special Type
                     case(funct)
+                        6'b000000:begin             // MADD 
+                            wr_en <= 1'b0;          // -> result write to {Hi,Lo} not to register file
+                            alu_op <= 8'b10100110;
+                            alu_sel <= 3'b101;
+                            rd1_en <= 1'b1;
+                            rd2_en <= 1'b1;
+                            ins_check <= 1'b1;
+                        end
+                        6'b000001:begin             // MADDU
+                            wr_en <= 1'b0;
+                            alu_op <= 8'b10101000;
+                            alu_sel <= 3'b101;
+                            rd1_en <= 1'b1;
+                            rd2_en <= 1'b1;
+                            ins_check <=1'b1;
+                        end
+                        6'b000100:begin             // MSUB
+                            wr_en <= 1'b0;
+                            alu_op <= 8'b10101010;
+                            alu_sel <= 3'b101;
+                            rd1_en <= 1'b1;
+                            rd2_en <= 1'b1;
+                            ins_check <=1'b1;
+                        end
+                        6'b000101:begin             // MSUBU
+                            wr_en <= 1'b0;
+                            alu_op <= 8'b10101011;
+                            alu_sel <= 3'b101;
+                            rd1_en <= 1'b1;
+                            rd2_en <= 1'b1;
+                            ins_check <=1'b1;
+                        end
                         6'b100000:begin             // CLZ
                             wr_en <= 1'b1;
                             alu_op <= 8'b10110000;

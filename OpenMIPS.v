@@ -8,6 +8,7 @@
 `include "mem.v"
 `include "pipe_mem.v"
 `include "HILO.v"
+`include "ctrl.v"
 
 module OpenMIPS(
     input clk,reset,
@@ -62,7 +63,10 @@ module OpenMIPS(
 
     wire [31:0]HI,LO;
 
-    program_counter u_program_counter  (.clk(clk),.reset(reset),.chip_en(rom_en),.pc(pc));
+    wire id_stall_en,ex_stall_en;
+    wire [5:0]stall_en;
+
+    program_counter u_program_counter  (.clk(clk),.reset(reset),.chip_en(rom_en),.pc(pc),.stall_en(stall_en));
     
     assign rom_addr_out = pc;
     
@@ -70,7 +74,8 @@ module OpenMIPS(
                                         .if_pc(pc),
                                         .if_inst(rom_data_in),
                                         .id_pc(id_pc),
-                                        .id_inst(id_inst)
+                                        .id_inst(id_inst),
+                                        .stall_en(stall_en)
                                         );
 
     ins_decode      u_ins_decode       (.reset(reset),
@@ -93,7 +98,8 @@ module OpenMIPS(
                                         .src_data1(id_data1),           // [O] Output for register data/imm to ex (ALU Module)
                                         .src_data2(id_data2),           // [O] Output for register data/imm to ex (ALU Module)
                                         .wr_addr(id_addr),              // [O] Register file Write address
-                                        .wr_en(id_en)                   // [O] Register file Write Enable
+                                        .wr_en(id_en),                  // [O] Register file Write Enable
+                                        .stall_req(id_stall_en)
                                         );
 
     reg_file        u_reg_file         (.clk (clk),.reset(reset),       
@@ -120,7 +126,8 @@ module OpenMIPS(
                                         .pipe_src_data1(ex_data1),      
                                         .pipe_src_data2(ex_data2),      
                                         .pipe_wr_addr(ex_addr),         
-                                        .pipe_wr_en(ex_en)              
+                                        .pipe_wr_en(ex_en),
+                                        .stall_en(stall_en)              
                                         );
 
     ex              u_ex               (.reset(reset),                  
@@ -143,7 +150,8 @@ module OpenMIPS(
                                         .mem_pip_lo(pipe_mem_lo),
                                         .hilo_wr_en(ex_hilo_en),
                                         .hi_data(ex_hi),
-                                        .lo_data(ex_lo)
+                                        .lo_data(ex_lo),
+                                        .stall_req(ex_stall_en)
                                         );
 
     pipe_ex         u_pipe_ex          (.clk(clk),.reset(reset),
@@ -158,7 +166,8 @@ module OpenMIPS(
                                         .hilo_wr_lo(ex_lo),
                                         .pipe_hilo_en(ex_pipe_hilo_en),
                                         .pipe_hilo_hi(ex_pipe_hi),
-                                        .pipe_hilo_lo(ex_pipe_lo)
+                                        .pipe_hilo_lo(ex_pipe_lo),
+                                        .stall_en(stall_en)
                                         );
 
     mem             u_mem              (.reset(reset),      
@@ -188,7 +197,8 @@ module OpenMIPS(
                                         .mem_lo(mem_lo),
                                         .pipe_hilo_en(pipe_mem_hilo_en),
                                         .pipe_hi(pipe_mem_hi),
-                                        .pipe_lo(pipe_mem_lo)
+                                        .pipe_lo(pipe_mem_lo),
+                                        .stall_en(stall_en)    
                                         );
     HILO            u_HILO             (
                                         .clk(clk),.reset(reset),
@@ -197,6 +207,12 @@ module OpenMIPS(
                                         .LO(pipe_mem_lo),
                                         .out_HI(HI),
                                         .out_LO(LO)
+                                        );
+    ctrl            u_ctrl             (
+                                        .reset(reset),
+                                        .ex_stall(ex_stall_en),
+                                        .id_stall(id_stall_en),
+                                        .stall_en(stall_en)
                                         );
 
 endmodule

@@ -7,11 +7,15 @@ module ex(
     input wr_en,
     input [31:0]HI,LO,mem_hi_data,mem_lo_data,mem_pip_hi,mem_pip_lo,
     input mem_hilo_wr_en,mem_pip_en,
+    input [1:0]counter_in,
+    input [63:0]hilo_tmp_in,
     output reg[4:0]out_addr,
     output reg[31:0]out_data,
     output reg out_en,
     output reg hilo_wr_en,
-    output reg[31:0]hi_data,lo_data
+    output reg[31:0]hi_data,lo_data,
+    output reg [1:0]counter_out,
+    output reg [63:0]hilo_tmp_out,
     output stall_req
 );
     reg [31:0] logic_result;                                    // Logic Result
@@ -30,6 +34,8 @@ module ex(
     wire [31:0]data1_not;
     wire [31:0]mul_data1,mul_data2;
     wire [63:0]hilo_tmp;
+    reg  [63:0]hilo_tmp1;
+    reg stall_req_madd_msub;
 
     assign cal_data2 = ((alu_op == 8'b00100010) ||
                         (alu_op == 8'b00100011) ||
@@ -45,9 +51,20 @@ module ex(
 
     assign overflow = ((!src_data1[31] && !cal_data2[31]) && sum_result[31]) || ((src_data1[31] && cal_data2[31]) && (!sum_result[31]));
     
-    assign mul_data1 = (((alu_op == 8'b10101001)||(alu_op == 8'b00011000)) && (src_data1[31] == 1'b1))? (~src_data1+1):src_data1;           // get Complement
-    assign mul_data2 = (((alu_op == 8'b10101001)||(alu_op == 8'b00011000)) && (src_data2[31] == 1'b1))? (~src_data2+1):src_data2;           // get Complement
+    assign mul_data1 = (((alu_op == 8'b10101001)||
+                         (alu_op == 8'b00011000)||
+                         (alu_op == 8'b10100110)||
+                         (alu_op == 8'b10101010))&& 
+                         (src_data1[31] == 1'b1))? (~src_data1+1):src_data1;           // get Complement
+                         
+    assign mul_data2 = (((alu_op == 8'b10101001)||
+                         (alu_op == 8'b00011000)||
+                         (alu_op == 8'b10100110)||
+                         (alu_op == 8'b10101010))&& (src_data2[31] == 1'b1))? (~src_data2+1):src_data2;           // get Complement
+
     assign hilo_tmp = mul_data1 * mul_data2;
+
+    assign stall_req = stall_req_madd_msub;
 
     always @(*) begin                                           // Logic Calculate
         if(reset)begin
@@ -214,11 +231,11 @@ module ex(
         end    
     end
 
-    always @(*) begin                                                   // Multiplication Airthmetic
+    always @(*) begin                                           // Multiplication Airthmetic
         if(reset)begin
             mul_result <= 64'd0;
         end
-        else if((alu_op == 8'b10101001)||(alu_op == 8'b00011000))begin      
+        else if((alu_op == 8'b10101001)||(alu_op == 8'b00011000)||(alu_op == 8'b10100110)||(alu_op == 8'b10101010))begin      
             if(src_data1[31] ^ src_data2[31])begin
                 mul_result <= ~hilo_tmp+1;
             end
@@ -271,7 +288,7 @@ module ex(
         end
     end
 
-    always @(*) begin                                           // MTHI and MTLO
+    always @(*) begin                                           // hi_data and lo_data access
         if(reset)begin
             hilo_wr_en <= 1'b0;
             hi_data <= 32'd0;
@@ -294,10 +311,63 @@ module ex(
                     hi_data <= mul_result[63:32];
                     lo_data <= mul_result[31:0];
                 end
+                8'b10100110,8'b10101000,8'b10101010,8'b10101011:begin
+                    hilo_wr_en <= 1'b1;
+                    hi_data <= hilo_tmp1[63:32];
+                    lo_data <= hilo_tmp1[31:0];
+                end
                 default:begin
                     hilo_wr_en <= 1'b0;
                     hi_data <= 32'd0;
                     lo_data <= 32'd0;
+                end
+            endcase
+        end
+    end
+
+    always @(*) begin                                           // MADD MADDU MSUB MSUBU
+        if(reset)begin
+            hilo_tmp_out <={32'd0,32'd0};
+            counter_out <= 2'd0;
+            stall_req_madd_msub <= 1'b0;
+        end
+        else begin
+            case(alu_op)
+                8'b10100110,8'b10101000:begin
+                    if(counter_in == 2'd0)begin
+                        hilo_tmp_out <= mul_result;
+                        counter_out <= 2'b01;
+                        hilo_tmp1 <= {32'd0,32'd0};
+                        stall_req_madd_msub <= 1'b1;
+                    end
+                    else if(counter_in == 2'd1)begin
+                        hilo_tmp_out <= {32'd0,32'd0};
+                        counter_out <= 2'b10;
+                        hilo_tmp1 <= hilo_tmp_in + {hi,lo};
+                        stall_req_madd_msub <= 1'b0;
+                    end
+                    else begin
+                    end
+                end
+                8'b10101010,8'b10101011:begin
+                    if(counter_in == 2'd0)begin
+                        hilo_tmp_out <= ~mul_result + 1;
+                        counter_out <= 2'b01;
+                        stall_req_madd_msub <= 1'b1;
+                    end
+                    else if(counter_in == 2'd1)begin
+                        hilo_tmp_out <= {32'd0,32'd0};
+                        counter_out <= 2'b10;
+                        hilo_tmp1 <= hilo_tmp_in + {hi,lo};
+                        stall_req_madd_msub <= 1'b0;
+                    end
+                    else begin
+                    end
+                end
+                default:begin
+                    hilo_tmp_out <={32'd0,32'd0};
+                    counter_out <= 2'd0;
+                    stall_req_madd_msub <= 1'b0;
                 end
             endcase
         end
