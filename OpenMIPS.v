@@ -9,6 +9,7 @@
 `include "pipe_mem.v"
 `include "HILO.v"
 `include "ctrl.v"
+`include "div.v"
 
 module OpenMIPS(
     input clk,reset,
@@ -68,6 +69,10 @@ module OpenMIPS(
 
     wire [63:0]ex_hilo,pipe_ex_hilo;
     wire [1:0]ex_counter,pipe_ex_counter;
+
+    wire [63:0]div_result;
+    wire [31:0]dividend,divisor;
+    wire div_ready,div_signed,div_start;
 
     program_counter u_program_counter  (.clk(clk),.reset(reset),.chip_en(rom_en),.pc(pc),.stall_en(stall_en));
     
@@ -158,7 +163,13 @@ module OpenMIPS(
                                         .counter_in(pipe_ex_counter),
                                         .hilo_tmp_in(pipe_ex_hilo),
                                         .counter_out(ex_counter),
-                                        .hilo_tmp_out(ex_hilo)
+                                        .hilo_tmp_out(ex_hilo),
+                                        .div_result(div_result),
+                                        .div_ready(div_ready),
+                                        .div_signed(div_signed),
+                                        .div_start(div_start),
+                                        .dividend(dividend),
+                                        .divisor(divisor)
                                         );
 
     pipe_ex         u_pipe_ex          (.clk(clk),.reset(reset),
@@ -224,6 +235,15 @@ module OpenMIPS(
                                         .ex_stall(ex_stall_en),
                                         .id_stall(id_stall_en),
                                         .stall_en(stall_en)
+                                        );
+    div             u_div              (.clk(clk),.reset(reset),
+                                        .sign(div_signed),
+                                        .opdata1(dividend),
+                                        .opdata2(divisor),
+                                        .start(div_start),
+                                        .cancel(1'b0),
+                                        .result(div_result),
+                                        .ready(div_ready)
                                         );
 
 endmodule

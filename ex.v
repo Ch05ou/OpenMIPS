@@ -9,6 +9,8 @@ module ex(
     input mem_hilo_wr_en,mem_pip_en,
     input [1:0]counter_in,
     input [63:0]hilo_tmp_in,
+    input [63:0]div_result,
+    input div_ready,
     output reg[4:0]out_addr,
     output reg[31:0]out_data,
     output reg out_en,
@@ -16,6 +18,9 @@ module ex(
     output reg[31:0]hi_data,lo_data,
     output reg [1:0]counter_out,
     output reg [63:0]hilo_tmp_out,
+    output reg div_signed,
+    output reg div_start,
+    output reg [31:0]dividend,divisor,
     output stall_req
 );
     reg [31:0] logic_result;                                    // Logic Result
@@ -36,6 +41,7 @@ module ex(
     wire [63:0]hilo_tmp;
     reg  [63:0]hilo_tmp1;
     reg stall_req_madd_msub;
+    reg stall_div;
 
     assign cal_data2 = ((alu_op == 8'b00100010) ||
                         (alu_op == 8'b00100011) ||
@@ -64,7 +70,7 @@ module ex(
 
     assign hilo_tmp = mul_data1 * mul_data2;
 
-    assign stall_req = stall_req_madd_msub;
+    assign stall_req = stall_req_madd_msub || stall_div;
 
     always @(*) begin                                           // Logic Calculate
         if(reset)begin
@@ -316,6 +322,11 @@ module ex(
                     hi_data <= hilo_tmp1[63:32];
                     lo_data <= hilo_tmp1[31:0];
                 end
+                8'b00011010,8'b00011011:begin
+                    hilo_wr_en <= 1'b1;
+                    hi_data <= div_result[63:32];
+                    lo_data <= div_result[31:0];
+                end
                 default:begin
                     hilo_wr_en <= 1'b0;
                     hi_data <= 32'd0;
@@ -372,4 +383,72 @@ module ex(
             endcase
         end
     end
+
+    always@(*)begin                                             // DIV DIVU
+        if(reset)begin
+            stall_div <= 1'b0;
+            dividend <= 32'd0;
+            divisor <= 32'd0;
+            div_start <= 1'b0;
+            div_signed <= 1'b0;
+        end
+        else begin
+            stall_div <= 1'b0;
+            dividend <= 32'd0;
+            divisor <= 32'd0;
+            div_start <= 1'b0;
+            div_signed <= 1'b0;
+            case(alu_op)
+                8'b00011010:begin
+                    if(div_ready == 1'b0)begin
+                        stall_div <= 1'b1;
+                        dividend <= src_data1;
+                        divisor <= src_data2;
+                        div_start <= 1'b1;
+                        div_signed <= 1'b1;
+                    end
+                    else if(div_ready == 1'b1)begin
+                        stall_div <= 1'b0;
+                        dividend <= src_data1;
+                        divisor <= src_data2;
+                        div_start <= 1'b0;
+                        div_signed <= 1'b1;
+                    end
+                    else begin
+                        stall_div <= 1'b0;
+                        dividend <= 32'd0;
+                        divisor <= 32'd0;
+                        div_start <= 1'b0;
+                        div_signed <= 1'b0;
+                    end
+                end
+                8'b00011011:begin
+                    if(div_ready == 1'b0)begin
+                        dividend <= src_data1;
+                        divisor <= src_data2;
+                        div_start <= 1'b1;
+                        div_signed <= 1'b0;
+                        stall_div <= 1'b1;
+                    end
+                    else if(div_ready == 1'b1)begin
+                        dividend <= src_data1;
+                        divisor <= src_data2;
+                        div_start <= 1'b0;
+                        div_signed <= 1'b0;
+                        stall_div <= 1'b0;
+                    end
+                    else begin
+                        dividend <= 32'd0;
+                        divisor <= 32'd0;
+                        div_start <= 1'b0;
+                        div_signed <= 1'b0;
+                        stall_div <= 1'b0;
+                    end
+                end
+                default:begin
+                end
+            endcase
+        end
+    end
+
 endmodule

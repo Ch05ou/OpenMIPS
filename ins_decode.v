@@ -235,6 +235,20 @@ module ins_decode(
                                     rd2_en <= 1'b1;
                                     ins_check <= 1'b1;
                                 end
+                                6'b011010:begin         // DIV
+                                    wr_en <= 1'b0;
+                                    alu_op <= 8'b00011010;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
+                                6'b011011:begin         // DIVU
+                                    wr_en <= 1'b0;
+                                    alu_op <= 8'b00011011;
+                                    rd1_en <= 1'b1;
+                                    rd2_en <= 1'b1;
+                                    ins_check <= 1'b1;
+                                end
                                 default:begin
                                 end
                             endcase

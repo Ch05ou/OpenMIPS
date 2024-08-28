@@ -29,7 +29,7 @@ module openmips_min_sopc_tb();
 
   always @(posedge clk ) begin
     cycle = cycle+1;
-    if(cycle > 80)begin
+    if(cycle > 800)begin
       $display("--------------------------------Simulation Complete !--------------------------------");
       $finish;
     end  
